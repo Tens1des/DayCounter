@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct DayCounterApp: App {
+    @StateObject private var dataManager = DataManager.shared
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
+                .environmentObject(dataManager)
+                .preferredColorScheme(dataManager.settings.theme == .light ? .light : 
+                                    dataManager.settings.theme == .dark ? .dark : nil)
         }
     }
 }
