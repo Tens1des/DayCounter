@@ -30,6 +30,22 @@ enum AppTheme: String, Codable, CaseIterable, Equatable {
 }
 
 
+enum DateFormatStyle: String, Codable, CaseIterable, Equatable {
+    case ddmmyyyy = "DD.MM.YYYY"
+    case mmddyyyy = "MM/DD/YYYY"
+    case yyyymmdd = "YYYY-MM-DD"
+    
+    var displayName: String { rawValue }
+    
+    var formatString: String {
+        switch self {
+        case .ddmmyyyy: return "dd.MM.yyyy"
+        case .mmddyyyy: return "MM/dd/yyyy"
+        case .yyyymmdd: return "yyyy-MM-dd"
+        }
+    }
+}
+
 enum TextSize: String, Codable, CaseIterable, Equatable {
     case small = "Small"
     case standard = "Standard"
@@ -60,17 +76,23 @@ struct UserSettings: Codable, Equatable {
     var language: AppLanguage
     var theme: AppTheme
     var textSize: TextSize
+    var dateFormat: DateFormatStyle
+    var defaultTimeFormat: TimeFormat
     var profile: UserProfile
     
     init(
         language: AppLanguage = .english,
         theme: AppTheme = .system,
         textSize: TextSize = .standard,
+        dateFormat: DateFormatStyle = .ddmmyyyy,
+        defaultTimeFormat: TimeFormat = .days,
         profile: UserProfile = UserProfile()
     ) {
         self.language = language
         self.theme = theme
         self.textSize = textSize
+        self.dateFormat = dateFormat
+        self.defaultTimeFormat = defaultTimeFormat
         self.profile = profile
     }
 }

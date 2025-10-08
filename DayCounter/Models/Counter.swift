@@ -83,6 +83,43 @@ struct Counter: Identifiable, Codable {
     var colorValue: Color {
         Color(hex: color) ?? .blue
     }
+    
+    // Format time according to TimeFormat
+    func formattedTime(using format: TimeFormat) -> String {
+        let days = abs(daysCount)
+        
+        switch format {
+        case .days:
+            return "\(days)"
+        case .weeks:
+            let weeks = days / 7
+            let remainingDays = days % 7
+            if remainingDays > 0 {
+                return "\(weeks)w \(remainingDays)d"
+            } else {
+                return "\(weeks)"
+            }
+        case .months:
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.month, .day], from: Date(), to: targetDate)
+            let months = abs(components.month ?? 0)
+            let remainingDays = abs(components.day ?? 0)
+            if remainingDays > 0 {
+                return "\(months)m \(remainingDays)d"
+            } else {
+                return "\(months)"
+            }
+        }
+    }
+    
+    // Get time unit label for format
+    func timeUnitLabel(for format: TimeFormat) -> String {
+        switch format {
+        case .days: return "days"
+        case .weeks: return "weeks"
+        case .months: return "months"
+        }
+    }
 }
 
 enum TimeFormat: String, Codable, CaseIterable {

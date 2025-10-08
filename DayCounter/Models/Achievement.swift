@@ -123,6 +123,95 @@ struct Achievement: Identifiable, Codable {
             isUnlocked: false,
             progress: 0,
             maxProgress: 365
+        ),
+        // New Achievements
+        Achievement(
+            id: "emoji_master",
+            name: "Emoji Master",
+            description: "Add emoji to 5 events",
+            icon: "😎",
+            rarity: .common,
+            points: 20,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 5
+        ),
+        Achievement(
+            id: "colorful_life",
+            name: "Colorful Life",
+            description: "Assign different colors to 3 events",
+            icon: "🎨",
+            rarity: .common,
+            points: 15,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 3
+        ),
+        Achievement(
+            id: "pin_master",
+            name: "Pin Master",
+            description: "Pin 3 important events",
+            icon: "📌",
+            rarity: .rare,
+            points: 40,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 3
+        ),
+        Achievement(
+            id: "note_keeper",
+            name: "Note Keeper",
+            description: "Add notes to 5 events",
+            icon: "📝",
+            rarity: .common,
+            points: 25,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 5
+        ),
+        Achievement(
+            id: "time_traveler",
+            name: "Time Traveler",
+            description: "Create 10 different counters",
+            icon: "⏰",
+            rarity: .epic,
+            points: 100,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 10
+        ),
+        Achievement(
+            id: "dedication",
+            name: "Dedication",
+            description: "Use the app for 7 consecutive days",
+            icon: "💎",
+            rarity: .rare,
+            points: 60,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 7
+        ),
+        Achievement(
+            id: "milestone_hunter",
+            name: "Milestone Hunter",
+            description: "Reach 5 event milestones",
+            icon: "🎯",
+            rarity: .epic,
+            points: 120,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 5
+        ),
+        Achievement(
+            id: "ultimate_tracker",
+            name: "Ultimate Tracker",
+            description: "Have 20 active counters",
+            icon: "👑",
+            rarity: .legendary,
+            points: 300,
+            isUnlocked: false,
+            progress: 0,
+            maxProgress: 20
         )
     ]
 }

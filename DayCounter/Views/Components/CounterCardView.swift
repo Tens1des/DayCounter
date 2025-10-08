@@ -61,14 +61,15 @@ struct CounterCardView: View {
                     Spacer()
                 }
                 
-                // Days count
-                Text("\(abs(counter.daysCount))")
+                // Time count with format
+                let timeFormat = counter.timeFormat ?? dataManager.settings.defaultTimeFormat
+                Text(counter.formattedTime(using: timeFormat))
                     .font(.system(size: 42, weight: .bold))
                     .foregroundColor(.primary)
                 
-                // Days label and date
+                // Time unit label and date
                 HStack {
-                    Text("days")
+                    Text(counter.timeUnitLabel(for: timeFormat))
                         .font(.system(size: 16))
                         .foregroundColor(.secondary)
                     
@@ -155,9 +156,9 @@ struct CounterCardView: View {
             .padding(.vertical, 8)
         }
         .padding(16)
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
     }
 }
 

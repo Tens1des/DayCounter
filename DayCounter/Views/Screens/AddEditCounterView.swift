@@ -23,6 +23,7 @@ struct AddEditCounterView: View {
     @State private var note: String = ""
     @State private var showProgress: Bool = true
     @State private var isPinned: Bool = false
+    @State private var selectedTimeFormat: TimeFormat? = nil
     @State private var showingEmojiPicker = false
     @State private var showingCategorySheet = false
     
@@ -32,118 +33,330 @@ struct AddEditCounterView: View {
     
     var body: some View {
         NavigationView {
-            Form {
-                // Event Name
-                Section(header: Text("Event Name *")) {
-                    TextField("e.g. Summer Vacation", text: $name)
-                }
-                
-                // Counter Type
-                Section(header: Text("Counter Type *")) {
-                    Picker("Type", selection: $type) {
-                        Text("Count Until").tag(CounterType.countUntil)
-                        Text("Count Since").tag(CounterType.countSince)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                }
-                
-                // Event Date
-                Section(header: Text("Event Date *")) {
-                    DatePicker("Date", selection: $targetDate, displayedComponents: [.date])
-                        .datePickerStyle(CompactDatePickerStyle())
-                }
-                
-                // Start Date (for progress calculation)
-                if type == .countUntil {
-                    Section(header: Text("Start Date (for progress)"),
-                           footer: Text("Used to calculate percentage progress")) {
-                        DatePicker("From", selection: $startDate, displayedComponents: [.date])
-                            .datePickerStyle(CompactDatePickerStyle())
-                    }
-                }
-                
-                // Category
-                Section(header: Text("Category")) {
-                    Button(action: { showingCategorySheet = true }) {
-                        HStack {
-                            Text("Category")
-                            Spacer()
-                            if let categoryId = selectedCategoryId,
-                               let category = dataManager.getCategory(id: categoryId) {
-                                Text("\(category.emoji) \(category.name)")
-                                    .foregroundColor(.secondary)
-                            } else {
-                                Text("None")
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    }
-                }
-                
-                // Emoji
-                Section(header: Text("Emoji")) {
-                    Button(action: { showingEmojiPicker = true }) {
-                        HStack {
-                            Text("Select Emoji")
-                            Spacer()
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Preview Card
+                    VStack(spacing: 16) {
+                        // Emoji Circle
+                        ZStack {
+                            Circle()
+                                .fill(Color(hex: selectedColor)?.opacity(0.15) ?? Color.blue.opacity(0.15))
+                                .frame(width: 100, height: 100)
+                            
                             Text(emoji)
-                                .font(.system(size: 32))
+                                .font(.system(size: 50))
                         }
+                        
+                        // Name Preview
+                        Text(name.isEmpty ? "Event Name" : name)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(name.isEmpty ? .gray : .primary)
+                        
+                        // Type Badge
+                        Text(type == .countUntil ? LocalizedStrings.shared.countUntil : LocalizedStrings.shared.countSince)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 6)
+                            .background(Color(hex: selectedColor) ?? .blue)
+                            .cornerRadius(12)
                     }
-                }
-                
-                // Accent Color
-                Section(header: Text("Accent Color")) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(ColorPalette.colors, id: \.hex) { colorItem in
-                                Button(action: {
-                                    selectedColor = colorItem.hex
-                                }) {
-                                    ZStack {
-                                        Circle()
-                                            .fill(Color(hex: colorItem.hex) ?? .blue)
-                                            .frame(width: 44, height: 44)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 30)
+                    .background(Color(UIColor.secondarySystemBackground))
+                    .cornerRadius(20)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    // Form Fields
+                    VStack(spacing: 20) {
+                        // Event Name
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(LocalizedStrings.shared.eventName)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.secondary)
+                            
+                            TextField("e.g. Summer Vacation", text: $name)
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Counter Type
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(LocalizedStrings.shared.counterType)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.secondary)
+                            
+                            Picker("Type", selection: $type) {
+                                Text(LocalizedStrings.shared.countUntil).tag(CounterType.countUntil)
+                                Text(LocalizedStrings.shared.countSince).tag(CounterType.countSince)
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                        }
+                        .padding(.horizontal)
+                        
+                        // Event Date
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(LocalizedStrings.shared.eventDate)
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.secondary)
+                            
+                            DatePicker("", selection: $targetDate, displayedComponents: [.date])
+                                .datePickerStyle(GraphicalDatePickerStyle())
+                                .padding()
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Start Date (for progress)
+                        if type == .countUntil {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Start Date (for progress)")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                                
+                                Text("Used to calculate percentage progress")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                                
+                                DatePicker("", selection: $startDate, displayedComponents: [.date])
+                                    .datePickerStyle(CompactDatePickerStyle())
+                                    .padding()
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .cornerRadius(12)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Customization Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("CUSTOMIZATION")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            VStack(spacing: 12) {
+                                // Emoji Picker
+                                Button(action: { showingEmojiPicker = true }) {
+                                    HStack {
+                                        Image(systemName: "face.smiling")
+                                            .font(.system(size: 20))
+                                            .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                            .frame(width: 32)
                                         
-                                        if selectedColor == colorItem.hex {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.white)
-                                                .font(.system(size: 18, weight: .bold))
+                                        Text(LocalizedStrings.shared.emoji)
+                                            .foregroundColor(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        Text(emoji)
+                                            .font(.system(size: 28))
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding()
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .cornerRadius(12)
+                                }
+                                .padding(.horizontal)
+                                
+                                // Color Picker
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack {
+                                        Image(systemName: "paintpalette")
+                                            .font(.system(size: 20))
+                                            .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                            .frame(width: 32)
+                                        
+                                        Text(LocalizedStrings.shared.accentColor)
+                                            .foregroundColor(.primary)
+                                    }
+                                    .padding(.horizontal)
+                                    
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 16) {
+                                            ForEach(ColorPalette.colors, id: \.hex) { colorItem in
+                                                Button(action: {
+                                                    selectedColor = colorItem.hex
+                                                }) {
+                                                    ZStack {
+                                                        Circle()
+                                                            .fill(Color(hex: colorItem.hex) ?? .blue)
+                                                            .frame(width: 50, height: 50)
+                                                        
+                                                        if selectedColor == colorItem.hex {
+                                                            Circle()
+                                                                .stroke(Color.primary, lineWidth: 3)
+                                                                .frame(width: 58, height: 58)
+                                                            
+                                                            Image(systemName: "checkmark")
+                                                                .foregroundColor(.white)
+                                                                .font(.system(size: 20, weight: .bold))
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
+                                        .padding(.horizontal)
                                     }
                                 }
+                                .padding(.vertical, 12)
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                                
+                                // Category Picker
+                                Button(action: { showingCategorySheet = true }) {
+                                    HStack {
+                                        Image(systemName: "folder")
+                                            .font(.system(size: 20))
+                                            .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                            .frame(width: 32)
+                                        
+                                        Text(LocalizedStrings.shared.category)
+                                            .foregroundColor(.primary)
+                                        
+                                        Spacer()
+                                        
+                                        if let categoryId = selectedCategoryId,
+                                           let category = dataManager.getCategory(id: categoryId) {
+                                            Text("\(category.emoji)")
+                                                .font(.system(size: 20))
+                                            Text(category.name)
+                                                .foregroundColor(.secondary)
+                                        } else {
+                                            Text("None")
+                                                .foregroundColor(.secondary)
+                                        }
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding()
+                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .cornerRadius(12)
+                                }
+                                .padding(.horizontal)
                             }
                         }
-                        .padding(.vertical, 8)
+                        
+                        // Note
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Image(systemName: "note.text")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                    .frame(width: 32)
+                                
+                                Text(LocalizedStrings.shared.note)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            TextEditor(text: $note)
+                                .frame(height: 100)
+                                .padding(8)
+                                .background(Color(UIColor.secondarySystemBackground))
+                                .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Options
+                        VStack(spacing: 12) {
+                            // Time Format
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Image(systemName: "clock")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                        .frame(width: 32)
+                                    
+                                    Text("Time Format")
+                                        .foregroundColor(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Picker("", selection: $selectedTimeFormat) {
+                                        Text("Default (\(dataManager.settings.defaultTimeFormat.displayName))").tag(nil as TimeFormat?)
+                                        ForEach(TimeFormat.allCases, id: \.self) { format in
+                                            Text(format.displayName).tag(format as TimeFormat?)
+                                        }
+                                    }
+                                    .pickerStyle(MenuPickerStyle())
+                                }
+                            }
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                            
+                            HStack {
+                                Image(systemName: "chart.bar.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                    .frame(width: 32)
+                                
+                                Text(LocalizedStrings.shared.showProgress)
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                                
+                                Toggle("", isOn: $showProgress)
+                                    .labelsHidden()
+                            }
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                            
+                            HStack {
+                                Image(systemName: "pin.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundColor(Color(hex: selectedColor) ?? .blue)
+                                    .frame(width: 32)
+                                
+                                Text(LocalizedStrings.shared.pinCounter)
+                                    .foregroundColor(.primary)
+                                
+                                Spacer()
+                                
+                                Toggle("", isOn: $isPinned)
+                                    .labelsHidden()
+                            }
+                            .padding()
+                            .background(Color(UIColor.secondarySystemBackground))
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
+                        
+                        // Create/Save Button
+                        Button(action: { saveCounter() }) {
+                            Text(isEditMode ? LocalizedStrings.shared.save : LocalizedStrings.shared.createCounter)
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(name.isEmpty ? Color.gray : (Color(hex: selectedColor) ?? .blue))
+                                .cornerRadius(16)
+                        }
+                        .disabled(name.isEmpty)
+                        .padding(.horizontal)
+                        .padding(.bottom, 30)
                     }
                 }
-                
-                // Note
-                Section(header: Text("Note (Optional)")) {
-                    TextEditor(text: $note)
-                        .frame(height: 80)
-                }
-                
-                // Options
-                Section(header: Text("Options")) {
-                    Toggle("Show Progress", isOn: $showProgress)
-                    Toggle("Pin Counter", isOn: $isPinned)
-                }
             }
-            .navigationTitle(isEditMode ? "Edit Counter" : "New Counter")
+            .background(Color(UIColor.systemBackground))
+            .navigationTitle(isEditMode ? LocalizedStrings.shared.editCounter : LocalizedStrings.shared.newCounter)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(LocalizedStrings.shared.cancel) {
                         dismiss()
                     }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(isEditMode ? "Save" : "Create Counter") {
-                        saveCounter()
-                    }
-                    .disabled(name.isEmpty)
                 }
             }
         }
@@ -166,6 +379,7 @@ struct AddEditCounterView: View {
                 note = counter.note ?? ""
                 showProgress = counter.showProgress
                 isPinned = counter.isPinned
+                selectedTimeFormat = counter.timeFormat
             }
         }
     }
@@ -184,6 +398,7 @@ struct AddEditCounterView: View {
             updatedCounter.note = note.isEmpty ? nil : note
             updatedCounter.showProgress = showProgress
             updatedCounter.isPinned = isPinned
+            updatedCounter.timeFormat = selectedTimeFormat
             
             dataManager.updateCounter(updatedCounter)
         } else {
@@ -198,7 +413,8 @@ struct AddEditCounterView: View {
                 color: selectedColor,
                 note: note.isEmpty ? nil : note,
                 showProgress: showProgress,
-                isPinned: isPinned
+                isPinned: isPinned,
+                timeFormat: selectedTimeFormat
             )
             
             dataManager.addCounter(newCounter)

@@ -40,6 +40,31 @@ struct CounterDetailView: View {
         .cornerRadius(12)
     }
     
+    private func calculateTimeComponents(from counter: Counter) -> (years: Int, months: Int, days: Int, weeks: Int, totalDays: Int) {
+        let calendar = Calendar.current
+        let startDate: Date
+        let endDate: Date
+        
+        if counter.type == .countUntil {
+            startDate = Date()
+            endDate = counter.targetDate
+        } else {
+            startDate = counter.targetDate
+            endDate = Date()
+        }
+        
+        let components = calendar.dateComponents([.year, .month, .day, .weekOfYear], from: startDate, to: endDate)
+        let totalDays = abs(calendar.dateComponents([.day], from: startDate, to: endDate).day ?? 0)
+        
+        return (
+            years: abs(components.year ?? 0),
+            months: abs(components.month ?? 0),
+            days: abs(components.day ?? 0),
+            weeks: totalDays / 7,
+            totalDays: totalDays
+        )
+    }
+    
     var body: some View {
         NavigationView {
             Group {
@@ -149,21 +174,36 @@ struct CounterDetailView: View {
                                 }
                                 .padding(.horizontal, 20)
                                 
-                                // Time breakdown
-                                if counter.type == .countSince, let anniversary = counter.anniversary {
-                                    HStack(spacing: 24) {
-                                        if anniversary.years > 0 {
-                                            timeBreakdownItem(value: anniversary.years, unit: "years")
+                                // Time breakdown - для всех типов счётчиков
+                                VStack(spacing: 16) {
+                                    Text("TIME BREAKDOWN")
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(.white.opacity(0.7))
+                                    
+                                    let components = calculateTimeComponents(from: counter)
+                                    
+                                    // Годы, месяцы, дни
+                                    if components.years > 0 || components.months > 0 {
+                                        HStack(spacing: 12) {
+                                            if components.years > 0 {
+                                                timeBreakdownItem(value: components.years, unit: LocalizedStrings.shared.years)
+                                            }
+                                            
+                                            if components.months > 0 {
+                                                timeBreakdownItem(value: components.months, unit: LocalizedStrings.shared.months)
+                                            }
+                                            
+                                            timeBreakdownItem(value: components.days, unit: LocalizedStrings.shared.days)
                                         }
-                                        
-                                        if anniversary.months > 0 {
-                                            timeBreakdownItem(value: anniversary.months, unit: "months")
-                                        }
-                                        
-                                        timeBreakdownItem(value: anniversary.days, unit: "days")
                                     }
-                                    .padding(.horizontal, 20)
+                                    
+                                    // Недели
+                                    HStack(spacing: 12) {
+                                        timeBreakdownItem(value: components.weeks, unit: "weeks")
+                                        timeBreakdownItem(value: components.totalDays, unit: "total days")
+                                    }
                                 }
+                                .padding(.horizontal, 20)
                                 
                                 // Note section
                                 if let note = counter.note, !note.isEmpty {

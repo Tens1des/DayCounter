@@ -45,7 +45,7 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(UIColor.systemBackground)
+                Color(UIColor.systemGroupedBackground)
                     .ignoresSafeArea()
                 
                 if dataManager.counters.isEmpty {
@@ -69,7 +69,7 @@ struct HomeView: View {
                                 }
                             }
                             .padding(12)
-                            .background(Color(UIColor.secondarySystemBackground))
+                            .background(Color(UIColor.systemBackground))
                             .cornerRadius(10)
                             .padding(.horizontal)
                             
@@ -107,22 +107,25 @@ struct HomeView: View {
                                         .foregroundColor(.secondary)
                                         .padding(.horizontal)
                                     
-                                    ForEach(pinnedCounters) { counter in
-                                        Button(action: {
-                                            selectedCounterId = counter.id
-                                            showingCounterDetail = true
-                                        }) {
-                                            CounterCardView(
-                                                counter: counter,
-                                                category: dataManager.getCategory(id: counter.categoryId)
-                                            )
-                                            .padding(.horizontal)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        .contextMenu {
-                                            counterContextMenu(counter: counter)
-                                        }
+                            ForEach(pinnedCounters) { counter in
+                                Button(action: {
+                                    // Проверяем что счётчик существует перед открытием
+                                    if dataManager.counters.contains(where: { $0.id == counter.id }) {
+                                        selectedCounterId = counter.id
+                                        showingCounterDetail = true
                                     }
+                                }) {
+                                    CounterCardView(
+                                        counter: counter,
+                                        category: dataManager.getCategory(id: counter.categoryId)
+                                    )
+                                    .padding(.horizontal)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .contextMenu {
+                                    counterContextMenu(counter: counter)
+                                }
+                            }
                                 }
                             }
                             
@@ -134,22 +137,25 @@ struct HomeView: View {
                                         .foregroundColor(.secondary)
                                         .padding(.horizontal)
                                     
-                                    ForEach(unpinnedCounters) { counter in
-                                        Button(action: {
-                                            selectedCounterId = counter.id
-                                            showingCounterDetail = true
-                                        }) {
-                                            CounterCardView(
-                                                counter: counter,
-                                                category: dataManager.getCategory(id: counter.categoryId)
-                                            )
-                                            .padding(.horizontal)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        .contextMenu {
-                                            counterContextMenu(counter: counter)
-                                        }
+                            ForEach(unpinnedCounters) { counter in
+                                Button(action: {
+                                    // Проверяем что счётчик существует перед открытием
+                                    if dataManager.counters.contains(where: { $0.id == counter.id }) {
+                                        selectedCounterId = counter.id
+                                        showingCounterDetail = true
                                     }
+                                }) {
+                                    CounterCardView(
+                                        counter: counter,
+                                        category: dataManager.getCategory(id: counter.categoryId)
+                                    )
+                                    .padding(.horizontal)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                .contextMenu {
+                                    counterContextMenu(counter: counter)
+                                }
+                            }
                                 }
                             }
                         }
@@ -177,16 +183,32 @@ struct HomeView: View {
                 AddEditCounterView(counter: nil)
                     .environmentObject(dataManager)
             }
-            .sheet(isPresented: $showingCounterDetail) {
-                if let counterId = selectedCounterId {
+            .sheet(isPresented: $showingCounterDetail, onDismiss: {
+                // Сбрасываем selectedCounterId при закрытии
+                selectedCounterId = nil
+            }) {
+                if let counterId = selectedCounterId,
+                   dataManager.counters.contains(where: { $0.id == counterId }) {
                     CounterDetailView(counterId: counterId)
                         .environmentObject(dataManager)
                 } else {
-                    VStack {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 48))
+                            .foregroundColor(.orange)
+                        
                         Text("Counter not found")
-                        Text("selectedCounterId is nil")
+                            .font(.title2)
+                        
+                        Text("This counter may have been deleted")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        
+                        Button("Close") {
+                            showingCounterDetail = false
+                            selectedCounterId = nil
+                        }
+                        .padding()
                     }
                     .padding()
                 }
@@ -228,8 +250,11 @@ struct HomeView: View {
     @ViewBuilder
     func counterContextMenu(counter: Counter) -> some View {
         Button(action: {
-            selectedCounterId = counter.id
-            showingCounterDetail = true
+            // Проверяем что счётчик существует перед открытием
+            if dataManager.counters.contains(where: { $0.id == counter.id }) {
+                selectedCounterId = counter.id
+                showingCounterDetail = true
+            }
         }) {
             Label(LocalizedStrings.shared.viewDetails, systemImage: "eye")
         }

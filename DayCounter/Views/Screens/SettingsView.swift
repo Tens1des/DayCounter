@@ -112,7 +112,7 @@ struct SettingsView: View {
                 }
                 
                 // Display Section
-                Section(header: Text("DISPLAY")) {
+                Section(header: Text(LocalizedStrings.shared.display)) {
                     // Language
                     HStack {
                         Image(systemName: "globe")
@@ -120,7 +120,7 @@ struct SettingsView: View {
                             .frame(width: 32)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Language")
+                            Text(LocalizedStrings.shared.language)
                                 .font(.system(size: 16))
                             Text(settings.language.displayName)
                                 .font(.system(size: 14))
@@ -132,6 +132,54 @@ struct SettingsView: View {
                         Picker("", selection: $settings.language) {
                             ForEach(AppLanguage.allCases, id: \.self) { language in
                                 Text(language.displayName).tag(language)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                    
+                    // Date Format
+                    HStack {
+                        Image(systemName: "calendar")
+                            .foregroundColor(.green)
+                            .frame(width: 32)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Date Format")
+                                .font(.system(size: 16))
+                            Text(settings.dateFormat.displayName)
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Picker("", selection: $settings.dateFormat) {
+                            ForEach(DateFormatStyle.allCases, id: \.self) { format in
+                                Text(format.displayName).tag(format)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                    
+                    // Time Format
+                    HStack {
+                        Image(systemName: "clock")
+                            .foregroundColor(.orange)
+                            .frame(width: 32)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Time Format")
+                                .font(.system(size: 16))
+                            Text(settings.defaultTimeFormat.displayName)
+                                .font(.system(size: 14))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Picker("", selection: $settings.defaultTimeFormat) {
+                            ForEach(TimeFormat.allCases, id: \.self) { format in
+                                Text(format.displayName).tag(format)
                             }
                         }
                         .pickerStyle(MenuPickerStyle())

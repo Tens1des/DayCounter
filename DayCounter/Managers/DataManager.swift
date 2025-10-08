@@ -67,8 +67,29 @@ class DataManager: ObservableObject {
     
     private func loadAchievements() {
         if let data = UserDefaults.standard.data(forKey: achievementsKey),
-           let decoded = try? JSONDecoder().decode([Achievement].self, from: data) {
-            achievements = decoded
+           let savedAchievements = try? JSONDecoder().decode([Achievement].self, from: data) {
+            // Мержим сохранённые достижения с новыми из Achievement.allAchievements
+            var mergedAchievements: [Achievement] = []
+            
+            // Проходим по всем доступным достижениям
+            for newAchievement in Achievement.allAchievements {
+                // Ищем это достижение в сохранённых
+                if let savedAchievement = savedAchievements.first(where: { $0.id == newAchievement.id }) {
+                    // Если найдено, используем сохранённое (с прогрессом)
+                    mergedAchievements.append(savedAchievement)
+                } else {
+                    // Если не найдено, добавляем новое
+                    mergedAchievements.append(newAchievement)
+                }
+            }
+            
+            achievements = mergedAchievements
+            // Сохраняем обновлённый список
+            saveAchievements()
+        } else {
+            // Если ничего не сохранено, используем все достижения по умолчанию
+            achievements = Achievement.allAchievements
+            saveAchievements()
         }
     }
     
