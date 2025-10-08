@@ -24,8 +24,8 @@ struct AddEditCounterView: View {
     @State private var showProgress: Bool = true
     @State private var isPinned: Bool = false
     @State private var selectedTimeFormat: TimeFormat? = nil
-    @State private var showingEmojiPicker = false
     @State private var showingCategorySheet = false
+    @State private var newlyCreatedCategoryId: UUID? = nil
     
     var isEditMode: Bool {
         counter != nil
@@ -131,116 +131,125 @@ struct AddEditCounterView: View {
                             .padding(.horizontal)
                         }
                         
-                        // Customization Section
+                        // Category Section
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("CUSTOMIZATION")
+                            Text("CATEGORY")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal)
                             
-                            VStack(spacing: 12) {
-                                // Emoji Picker
-                                Button(action: { showingEmojiPicker = true }) {
-                                    HStack {
-                                        Image(systemName: "face.smiling")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: selectedColor) ?? .blue)
-                                            .frame(width: 32)
+                            // Category Grid
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                                // None option
+                                Button(action: {
+                                    selectedCategoryId = nil
+                                }) {
+                                    HStack(spacing: 12) {
+                                        Text("📁")
+                                            .font(.system(size: 24))
                                         
-                                        Text(LocalizedStrings.shared.emoji)
-                                            .foregroundColor(.primary)
+                                        Text("None")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(selectedCategoryId == nil ? .white : .primary)
                                         
                                         Spacer()
-                                        
-                                        Text(emoji)
-                                            .font(.system(size: 28))
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.secondary)
                                     }
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(selectedCategoryId == nil ? Color.blue : Color(UIColor.secondarySystemBackground))
                                     .cornerRadius(12)
                                 }
-                                .padding(.horizontal)
                                 
-                                // Color Picker
-                                VStack(alignment: .leading, spacing: 12) {
-                                    HStack {
-                                        Image(systemName: "paintpalette")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: selectedColor) ?? .blue)
-                                            .frame(width: 32)
-                                        
-                                        Text(LocalizedStrings.shared.accentColor)
-                                            .foregroundColor(.primary)
+                                // Existing categories
+                                ForEach(dataManager.categories) { category in
+                                    Button(action: {
+                                        selectedCategoryId = category.id
+                                    }) {
+                                        HStack(spacing: 12) {
+                                            Text(category.emoji)
+                                                .font(.system(size: 24))
+                                            
+                                            Text(category.name)
+                                                .font(.system(size: 16, weight: .medium))
+                                                .foregroundColor(selectedCategoryId == category.id ? .white : .primary)
+                                            
+                                            Spacer()
+                                        }
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 12)
+                                        .background(selectedCategoryId == category.id ? Color.blue : Color(UIColor.secondarySystemBackground))
+                                        .cornerRadius(12)
                                     }
-                                    .padding(.horizontal)
-                                    
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 16) {
-                                            ForEach(ColorPalette.colors, id: \.hex) { colorItem in
-                                                Button(action: {
-                                                    selectedColor = colorItem.hex
-                                                }) {
-                                                    ZStack {
-                                                        Circle()
-                                                            .fill(Color(hex: colorItem.hex) ?? .blue)
-                                                            .frame(width: 50, height: 50)
-                                                        
-                                                        if selectedColor == colorItem.hex {
-                                                            Circle()
-                                                                .stroke(Color.primary, lineWidth: 3)
-                                                                .frame(width: 58, height: 58)
-                                                            
-                                                            Image(systemName: "checkmark")
-                                                                .foregroundColor(.white)
-                                                                .font(.system(size: 20, weight: .bold))
-                                                        }
-                                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                            
+                            // Create New Category Button
+                            Button(action: { showingCategorySheet = true }) {
+                                Text("+ Create New Category")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.blue)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Emoji Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("EMOJI")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            // Emoji Grid
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                                ForEach(EmojiPicker.emojis, id: \.self) { emojiOption in
+                                    Button(action: {
+                                        emoji = emojiOption
+                                    }) {
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(emoji == emojiOption ? Color.blue : Color(UIColor.secondarySystemBackground))
+                                                .frame(height: 50)
+                                            
+                                            Text(emojiOption)
+                                                .font(.system(size: 24))
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        // Color Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("ACCENT COLOR")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 16) {
+                                    ForEach(ColorPalette.colors, id: \.hex) { colorItem in
+                                        Button(action: {
+                                            selectedColor = colorItem.hex
+                                        }) {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color(hex: colorItem.hex) ?? .blue)
+                                                    .frame(width: 50, height: 50)
+                                                
+                                                if selectedColor == colorItem.hex {
+                                                    Circle()
+                                                        .stroke(Color.primary, lineWidth: 3)
+                                                        .frame(width: 58, height: 58)
+                                                    
+                                                    Image(systemName: "checkmark")
+                                                        .foregroundColor(.white)
+                                                        .font(.system(size: 20, weight: .bold))
                                                 }
                                             }
                                         }
-                                        .padding(.horizontal)
                                     }
-                                }
-                                .padding(.vertical, 12)
-                                .background(Color(UIColor.secondarySystemBackground))
-                                .cornerRadius(12)
-                                .padding(.horizontal)
-                                
-                                // Category Picker
-                                Button(action: { showingCategorySheet = true }) {
-                                    HStack {
-                                        Image(systemName: "folder")
-                                            .font(.system(size: 20))
-                                            .foregroundColor(Color(hex: selectedColor) ?? .blue)
-                                            .frame(width: 32)
-                                        
-                                        Text(LocalizedStrings.shared.category)
-                                            .foregroundColor(.primary)
-                                        
-                                        Spacer()
-                                        
-                                        if let categoryId = selectedCategoryId,
-                                           let category = dataManager.getCategory(id: categoryId) {
-                                            Text("\(category.emoji)")
-                                                .font(.system(size: 20))
-                                            Text(category.name)
-                                                .foregroundColor(.secondary)
-                                        } else {
-                                            Text("None")
-                                                .foregroundColor(.secondary)
-                                        }
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .cornerRadius(12)
                                 }
                                 .padding(.horizontal)
                             }
@@ -360,12 +369,12 @@ struct AddEditCounterView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingEmojiPicker) {
-            EmojiPickerView(selectedEmoji: $emoji)
-        }
         .sheet(isPresented: $showingCategorySheet) {
-            CategoryPickerView(selectedCategoryId: $selectedCategoryId)
-                .environmentObject(dataManager)
+            AddCategoryView { newCategoryId in
+                newlyCreatedCategoryId = newCategoryId
+                selectedCategoryId = newCategoryId
+            }
+            .environmentObject(dataManager)
         }
         .onAppear {
             if let counter = counter {
@@ -460,76 +469,13 @@ struct EmojiPickerView: View {
     }
 }
 
-// MARK: - Category Picker View
-struct CategoryPickerView: View {
-    @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var dataManager: DataManager
-    @Binding var selectedCategoryId: UUID?
-    @State private var showingAddCategory = false
-    
-    var body: some View {
-        NavigationView {
-            List {
-                Button(action: {
-                    selectedCategoryId = nil
-                    dismiss()
-                }) {
-                    HStack {
-                        Text("None")
-                        Spacer()
-                        if selectedCategoryId == nil {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                }
-                
-                ForEach(dataManager.categories) { category in
-                    Button(action: {
-                        selectedCategoryId = category.id
-                        dismiss()
-                    }) {
-                        HStack {
-                            Text(category.emoji)
-                            Text(category.name)
-                            Spacer()
-                            if selectedCategoryId == category.id {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    }
-                }
-                
-                Button(action: { showingAddCategory = true }) {
-                    HStack {
-                        Image(systemName: "plus.circle.fill")
-                        Text("Create New Category")
-                    }
-                    .foregroundColor(.blue)
-                }
-            }
-            .navigationTitle("Select Category")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showingAddCategory) {
-            AddCategoryView()
-                .environmentObject(dataManager)
-        }
-    }
-}
 
 // MARK: - Add Category View
 struct AddCategoryView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var dataManager: DataManager
+    
+    let onCategoryCreated: (UUID) -> Void
     
     @State private var name: String = ""
     @State private var emoji: String = "📁"
@@ -592,6 +538,7 @@ struct AddCategoryView: View {
                     Button("Create") {
                         let category = Category(name: name, emoji: emoji, color: selectedColor)
                         dataManager.addCategory(category)
+                        onCategoryCreated(category.id)
                         dismiss()
                     }
                     .disabled(name.isEmpty)
