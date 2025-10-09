@@ -427,6 +427,8 @@ struct AddEditCounterView: View {
             )
             
             dataManager.addCounter(newCounter)
+            // Проверяем достижения после добавления нового счётчика
+            AchievementManager.shared.checkAchievements()
         }
         
         dismiss()
@@ -534,15 +536,17 @@ struct AddCategoryView: View {
                     }
                 }
                 
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Create") {
-                        let category = Category(name: name, emoji: emoji, color: selectedColor)
-                        dataManager.addCategory(category)
-                        onCategoryCreated(category.id)
-                        dismiss()
-                    }
-                    .disabled(name.isEmpty)
-                }
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button("Create") {
+                                let category = Category(name: name, emoji: emoji, color: selectedColor)
+                                dataManager.addCategory(category)
+                                // Проверяем достижения после добавления новой категории
+                                AchievementManager.shared.checkAchievements()
+                                onCategoryCreated(category.id)
+                                dismiss()
+                            }
+                            .disabled(name.isEmpty)
+                        }
             }
         }
         .sheet(isPresented: $showingEmojiPicker) {

@@ -10,7 +10,9 @@ import Foundation
 class AchievementManager {
     static let shared = AchievementManager()
     
-    private let dataManager = DataManager.shared
+    private var dataManager: DataManager {
+        return DataManager.shared
+    }
     
     func checkAchievements() {
         checkFirstStep()

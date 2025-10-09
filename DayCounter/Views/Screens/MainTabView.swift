@@ -48,6 +48,12 @@ struct MainTabView: View {
                 )
             }
         }
+        .onAppear {
+            // Проверяем достижения после полной загрузки приложения
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                AchievementManager.shared.checkAchievements()
+            }
+        }
     }
 }
 

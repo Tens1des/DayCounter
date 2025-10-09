@@ -14,7 +14,7 @@ class DataManager: ObservableObject {
     @Published var counters: [Counter] = []
     @Published var categories: [Category] = []
     @Published var settings: UserSettings = UserSettings()
-    @Published var achievements: [Achievement] = Achievement.allAchievements
+    @Published var achievements: [Achievement] = []
     
     private let countersKey = "counters"
     private let categoriesKey = "categories"
@@ -68,29 +68,187 @@ class DataManager: ObservableObject {
     private func loadAchievements() {
         if let data = UserDefaults.standard.data(forKey: achievementsKey),
            let savedAchievements = try? JSONDecoder().decode([Achievement].self, from: data) {
-            // Мержим сохранённые достижения с новыми из Achievement.allAchievements
-            var mergedAchievements: [Achievement] = []
-            
-            // Проходим по всем доступным достижениям
-            for newAchievement in Achievement.allAchievements {
-                // Ищем это достижение в сохранённых
-                if let savedAchievement = savedAchievements.first(where: { $0.id == newAchievement.id }) {
-                    // Если найдено, используем сохранённое (с прогрессом)
-                    mergedAchievements.append(savedAchievement)
-                } else {
-                    // Если не найдено, добавляем новое
-                    mergedAchievements.append(newAchievement)
-                }
-            }
-            
-            achievements = mergedAchievements
-            // Сохраняем обновлённый список
-            saveAchievements()
+            achievements = savedAchievements
         } else {
-            // Если ничего не сохранено, используем все достижения по умолчанию
-            achievements = Achievement.allAchievements
+            // Если ничего не сохранено, создаём достижения по умолчанию
+            achievements = createDefaultAchievements()
             saveAchievements()
         }
+    }
+    
+    private func createDefaultAchievements() -> [Achievement] {
+        return [
+            Achievement(
+                id: "first_step",
+                name: "First Step",
+                description: "Create your first counter",
+                icon: "🎯",
+                rarity: .common,
+                points: 10,
+                isUnlocked: false
+            ),
+            Achievement(
+                id: "week_warrior",
+                name: "Week Warrior",
+                description: "Track an event for 7 days",
+                icon: "🔥",
+                rarity: .common,
+                points: 25,
+                isUnlocked: false
+            ),
+            Achievement(
+                id: "organizer",
+                name: "Organizer",
+                description: "Create 5 different counters",
+                icon: "⭐",
+                rarity: .rare,
+                points: 50,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 5
+            ),
+            Achievement(
+                id: "month_master",
+                name: "Month Master",
+                description: "Track an event for 30 days",
+                icon: "🏆",
+                rarity: .rare,
+                points: 75,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 30
+            ),
+            Achievement(
+                id: "streak_legend",
+                name: "Streak Legend",
+                description: "Maintain a 100 day streak",
+                icon: "⚡",
+                rarity: .epic,
+                points: 150,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 100
+            ),
+            Achievement(
+                id: "categorizer",
+                name: "Categorizer",
+                description: "Create 3 custom categories",
+                icon: "⭐",
+                rarity: .common,
+                points: 30,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 3
+            ),
+            Achievement(
+                id: "perfectionist",
+                name: "Perfectionist",
+                description: "Reach 100% on a counter",
+                icon: "✅",
+                rarity: .rare,
+                points: 100,
+                isUnlocked: false
+            ),
+            Achievement(
+                id: "year_champion",
+                name: "Year Champion",
+                description: "Track a count for 365 days",
+                icon: "🏅",
+                rarity: .legendary,
+                points: 500,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 365
+            ),
+            Achievement(
+                id: "emoji_master",
+                name: "Emoji Master",
+                description: "Add emoji to 5 events",
+                icon: "😎",
+                rarity: .common,
+                points: 20,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 5
+            ),
+            Achievement(
+                id: "colorful_life",
+                name: "Colorful Life",
+                description: "Assign different colors to 3 events",
+                icon: "🎨",
+                rarity: .common,
+                points: 15,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 3
+            ),
+            Achievement(
+                id: "pin_master",
+                name: "Pin Master",
+                description: "Pin 3 important events",
+                icon: "📌",
+                rarity: .rare,
+                points: 40,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 3
+            ),
+            Achievement(
+                id: "note_keeper",
+                name: "Note Keeper",
+                description: "Add notes to 5 events",
+                icon: "📝",
+                rarity: .common,
+                points: 25,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 5
+            ),
+            Achievement(
+                id: "time_traveler",
+                name: "Time Traveler",
+                description: "Create 10 different counters",
+                icon: "⏰",
+                rarity: .epic,
+                points: 100,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 10
+            ),
+            Achievement(
+                id: "dedication",
+                name: "Dedication",
+                description: "Use the app for 7 consecutive days",
+                icon: "💎",
+                rarity: .rare,
+                points: 60,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 7
+            ),
+            Achievement(
+                id: "milestone_hunter",
+                name: "Milestone Hunter",
+                description: "Reach 5 event milestones",
+                icon: "🎯",
+                rarity: .epic,
+                points: 120,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 5
+            ),
+            Achievement(
+                id: "ultimate_tracker",
+                name: "Ultimate Tracker",
+                description: "Have 20 active counters",
+                icon: "👑",
+                rarity: .legendary,
+                points: 300,
+                isUnlocked: false,
+                progress: 0,
+                maxProgress: 20
+            )
+        ]
     }
     
     // MARK: - Save Data
@@ -122,7 +280,6 @@ class DataManager: ObservableObject {
     func addCounter(_ counter: Counter) {
         counters.append(counter)
         saveCounters()
-        AchievementManager.shared.checkAchievements()
     }
     
     func updateCounter(_ counter: Counter) {
@@ -148,7 +305,6 @@ class DataManager: ObservableObject {
     func addCategory(_ category: Category) {
         categories.append(category)
         saveCategories()
-        AchievementManager.shared.checkAchievements()
     }
     
     func updateCategory(_ category: Category) {
